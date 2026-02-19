@@ -2,14 +2,21 @@ spring:
   application:
     name: BanckendKC
   datasource:
-      url: jdbc:postgresql://localhost:5432/kamycarnes
-      username: augalde
-      password: 
-    
+    url: jdbc:postgresql://localhost:5432/kamycarnes
+    username: augalde
+    password:
+
   jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
       hibernate:
-        ddl-auto: update
-      show-sql: true
+        format_sql: true
 
 server:
-    port: 8080
+  port: 8080
+
+jwt:
+  secret: KamyCarnes2024SecretKeyMuyLargaParaQueSeaSegura256Bits!!XD
+  expiration-ms: 86400000  # 24 horas
