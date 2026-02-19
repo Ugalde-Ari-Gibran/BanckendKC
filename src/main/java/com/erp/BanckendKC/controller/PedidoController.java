@@ -44,6 +44,20 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.listarTodos());
     }
 
+    // Admin: ver pedidos abiertos (no entregados)
+    @GetMapping("/abiertos")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PedidoResponse>> listarAbiertos() {
+        return ResponseEntity.ok(pedidoService.listarPedidosAbiertos());
+    }
+
+    // Admin: ver pedidos cerrados (entregados) de la última semana
+    @GetMapping("/cerrados")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PedidoResponse>> listarCerradosSemana() {
+        return ResponseEntity.ok(pedidoService.listarPedidosCerradosSemana());
+    }
+
     // Admin/Cliente: ver detalle de un pedido
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")

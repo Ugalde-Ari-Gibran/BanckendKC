@@ -22,6 +22,12 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     List<Pedido> findByFechaHoraBetweenOrderByFechaHoraDesc(LocalDateTime inicio, LocalDateTime fin);
 
+    // Pedidos abiertos (no entregados)
+    List<Pedido> findByEstadoNotAndEstadoNotOrderByFechaHoraDesc(EstadoPedido estado1, EstadoPedido estado2);
+
+    // Pedidos cerrados (entregados) por rango de fechas
+    List<Pedido> findByEstadoAndFechaEntregaBetweenOrderByFechaEntregaDesc(EstadoPedido estado, LocalDateTime inicio, LocalDateTime fin);
+
     @Query("SELECT SUM(p.totalContado) FROM Pedido p WHERE p.fechaHora BETWEEN :inicio AND :fin AND p.estadoPago = 'LIQUIDADO'")
     BigDecimal sumTotalContadoEntreFechas(LocalDateTime inicio, LocalDateTime fin);
 

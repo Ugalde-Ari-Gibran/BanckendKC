@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final NotificacionService notificacionService;
 
     @Transactional
     public PedidoResponse crearPedido(PedidoRequest request, String emailCliente) {
@@ -82,12 +84,31 @@ public class PedidoService {
 
         pedido = pedidoRepository.save(pedido);
 
+        // Crear notificación para los admins
+        notificacionService.crearNotificacionPedidoNuevo(pedido);
+
         return toResponse(pedido, generarMensajeWhatsApp(pedido, detalles));
     }
 
     public List<PedidoResponse> listarTodos() {
         return pedidoRepository.findAll().stream()
                 .map(p -> toResponse(p, null))
+                .collect(Collectors.toList());
+    }
+
+    // Pedidos abiertos (no entregados)
+    public List<PedidoResponse> listarPedidosAbiertos() {
+        return pedidoRepository.findByEstadoNotAndEstadoNotOrderByFechaHoraDesc(EstadoPedido.ENTREGADO, EstadoPedido.CANCELADO)
+                .stream().map(p -> toResponse(p, null))
+                .collect(Collectors.toList());
+    }
+
+    // Pedidos cerrados (entregados) por semana
+    public List<PedidoResponse> listarPedidosCerradosSemana() {
+        LocalDateTime inicioSemana = LocalDateTime.now().minusWeeks(1);
+        LocalDateTime finSemana = LocalDateTime.now();
+        return pedidoRepository.findByEstadoAndFechaEntregaBetweenOrderByFechaEntregaDesc(EstadoPedido.ENTREGADO, inicioSemana, finSemana)
+                .stream().map(p -> toResponse(p, null))
                 .collect(Collectors.toList());
     }
 
@@ -104,6 +125,15 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado: " + id));
         pedido.setEstado(nuevoEstado);
+        
+        // Si el pedido se marca como ENTREGADO, actualizar fecha de entrega
+        if (nuevoEstado == EstadoPedido.ENTREGADO) {
+            pedido.setFechaEntrega(LocalDateTime.now());
+        }
+        
+        // Notificar al cliente del cambio de estado
+        notificacionService.crearNotificacionCambioEstado(pedido);
+        
         return toResponse(pedidoRepository.save(pedido), null);
     }
 
