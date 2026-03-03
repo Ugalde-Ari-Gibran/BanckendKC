@@ -135,12 +135,5 @@
 				<spring-boot.run.profiles>prod</spring-boot.run.profiles>
 			</properties>
 		</profile>
-		<profile>
-			<id>railway</id>
-			<properties>
-				<spring-boot.run.profiles>railway</spring-boot.run.profiles>
-			</properties>
-		</profile>
 	</profiles>
-
 </project>
