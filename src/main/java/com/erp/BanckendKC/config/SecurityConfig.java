@@ -36,6 +36,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/test/**", "/api/hello").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
+                // Endpoints de notificaciones cliente - permitir autenticados, la restricción fina está en el controlador
+                .requestMatchers("/api/notificaciones/cliente/**").authenticated()
                 // Todo lo demás requiere autenticación
                 .anyRequest().authenticated()
             )

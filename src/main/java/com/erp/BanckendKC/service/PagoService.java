@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -62,5 +63,9 @@ public class PagoService {
                 .build();
 
         return pagoRepository.save(pago);
+    }
+
+    public List<Pago> obtenerPagos(Long pedidoId) {
+        return pagoRepository.findByPedidoIdOrderByFechaPagoDesc(pedidoId);
     }
 }

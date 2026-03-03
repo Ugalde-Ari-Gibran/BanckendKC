@@ -7,6 +7,7 @@ import com.erp.BanckendKC.repository.NotificacionRepository;
 import com.erp.BanckendKC.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -74,6 +75,7 @@ public class NotificacionService {
         return notificacionRepository.countByAdminDestinatarioAndLeidaFalse(adminEmail);
     }
 
+    @Transactional
     public NotificacionResponse marcarComoLeida(Long notificacionId) {
         Notificacion notificacion = notificacionRepository.findById(notificacionId)
                 .orElseThrow(() -> new RuntimeException("Notificación no encontrada"));
@@ -82,6 +84,11 @@ public class NotificacionService {
         notificacion.setFechaLectura(LocalDateTime.now());
         
         return toResponse(notificacionRepository.save(notificacion));
+    }
+
+    @Transactional
+    public void marcarTodasComoLeidasAdmin(String adminEmail) {
+        notificacionRepository.marcarTodasComoLeidasAdmin(adminEmail, LocalDateTime.now());
     }
 
     // Notificaciones para clientes
@@ -134,6 +141,11 @@ public class NotificacionService {
 
     public long contarNoLeidasCliente(String clienteEmail) {
         return notificacionRepository.countByClienteDestinatarioAndLeidaFalse(clienteEmail);
+    }
+
+    @Transactional
+    public void marcarTodasComoLeidasCliente(String clienteEmail) {
+        notificacionRepository.marcarTodasComoLeidasCliente(clienteEmail, LocalDateTime.now());
     }
 
     private NotificacionResponse toResponse(Notificacion n) {

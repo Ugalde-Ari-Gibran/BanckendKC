@@ -1,5 +1,6 @@
 package com.erp.BanckendKC.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,5 +27,6 @@ public class Categoria {
     private Boolean activa = true;
 
     @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Producto> productos;
 }

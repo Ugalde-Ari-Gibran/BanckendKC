@@ -58,6 +58,13 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.listarPedidosCerradosSemana());
     }
 
+    // Admin: ver pedidos con pagos parciales
+    @GetMapping("/parciales")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PedidoResponse>> listarParciales() {
+        return ResponseEntity.ok(pedidoService.listarPedidosConPagosParciales());
+    }
+
     // Admin/Cliente: ver detalle de un pedido
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")

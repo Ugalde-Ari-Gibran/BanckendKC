@@ -35,22 +35,36 @@ public class NotificacionController {
         return ResponseEntity.ok(notificacionService.marcarComoLeida(id));
     }
 
+    @PutMapping("/leer-todas")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> marcarTodasComoLeidasAdmin(Authentication auth) {
+        notificacionService.marcarTodasComoLeidasAdmin(auth.getName());
+        return ResponseEntity.noContent().build();
+    }
+
     // Endpoints para clientes
     @GetMapping("/cliente")
-    @PreAuthorize("hasRole('CLIENTE')")
+    @PreAuthorize("hasAnyRole('CLIENTE', 'ADMIN')")
     public ResponseEntity<List<NotificacionResponse>> obtenerNotificacionesCliente(Authentication auth) {
         return ResponseEntity.ok(notificacionService.obtenerNotificacionesCliente(auth.getName()));
     }
 
     @GetMapping("/cliente/no-leidas")
-    @PreAuthorize("hasRole('CLIENTE')")
+    @PreAuthorize("hasAnyRole('CLIENTE', 'ADMIN')")
     public ResponseEntity<Long> contarNoLeidasCliente(Authentication auth) {
         return ResponseEntity.ok(notificacionService.contarNoLeidasCliente(auth.getName()));
     }
 
     @PutMapping("/cliente/{id}/leer")
-    @PreAuthorize("hasRole('CLIENTE')")
+    @PreAuthorize("hasAnyRole('CLIENTE', 'ADMIN')")
     public ResponseEntity<NotificacionResponse> marcarComoLeidaCliente(@PathVariable Long id) {
         return ResponseEntity.ok(notificacionService.marcarComoLeida(id));
+    }
+
+    @PutMapping("/cliente/leer-todas")
+    @PreAuthorize("hasAnyRole('CLIENTE', 'ADMIN')")
+    public ResponseEntity<Void> marcarTodasComoLeidasCliente(Authentication auth) {
+        notificacionService.marcarTodasComoLeidasCliente(auth.getName());
+        return ResponseEntity.noContent().build();
     }
 }

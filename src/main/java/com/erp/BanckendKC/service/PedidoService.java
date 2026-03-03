@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +32,16 @@ public class PedidoService {
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
         }
 
+        // Manejar venta por ingreso directo
+        if (request.getOrigenVenta() == OrigenVenta.LOCAL_MANUAL && request.getMontoIngreso() != null) {
+            return crearVentaPorIngreso(request, cliente);
+        }
+
+        // Validar que haya detalles para ventas normales
+        if (request.getDetalles() == null || request.getDetalles().isEmpty()) {
+            throw new RuntimeException("El pedido debe tener al menos un producto");
+        }
+
         Pedido pedido = Pedido.builder()
                 .cliente(cliente)
                 .clienteNombreManual(request.getClienteNombreManual())
@@ -46,12 +57,23 @@ public class PedidoService {
 
         pedido = pedidoRepository.save(pedido);
 
+        // Agrupar detalles por producto y presentación
+        Map<String, DetallePedidoRequest> detallesAgrupados = request.getDetalles().stream()
+            .collect(Collectors.toMap(
+                d -> d.getProductoId() + "-" + d.getPresentacion(),
+                d -> d,
+                (d1, d2) -> {
+                    d1.setCantidad(d1.getCantidad() + d2.getCantidad());
+                    return d1;
+                }
+            ));
+
         // Crear detalles
         BigDecimal totalContado = BigDecimal.ZERO;
         BigDecimal totalParcial = BigDecimal.ZERO;
 
         final Pedido pedidoFinal = pedido;
-        List<DetallePedido> detalles = request.getDetalles().stream().map(d -> {
+        List<DetallePedido> detalles = detallesAgrupados.values().stream().map(d -> {
             Producto producto = productoRepository.findById(d.getProductoId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + d.getProductoId()));
 
@@ -90,6 +112,36 @@ public class PedidoService {
         return toResponse(pedido, generarMensajeWhatsApp(pedido, detalles));
     }
 
+    private PedidoResponse crearVentaPorIngreso(PedidoRequest request, Usuario cliente) {
+        // Crear pedido con ingreso directo
+        Pedido pedido = Pedido.builder()
+                .cliente(cliente)
+                .clienteNombreManual(request.getClienteNombreManual())
+                .clienteTelefonoManual(request.getClienteTelefonoManual())
+                .modalidad(request.getModalidad())
+                .origenVenta(OrigenVenta.LOCAL_MANUAL)
+                .estado(EstadoPedido.ENTREGADO) // Directamente entregado
+                .estadoPago(EstadoPago.LIQUIDADO) // Directamente pagado
+                .direccionEntrega(request.getDireccionEntrega())
+                .notas("Venta por ingreso directo - " + request.getMetodoPago())
+                .montoPagado(BigDecimal.valueOf(request.getMontoIngreso()))
+                .build();
+
+        pedido = pedidoRepository.save(pedido);
+
+        // No hay detalles de productos, solo el monto
+        pedido.setTotalContado(BigDecimal.valueOf(request.getMontoIngreso()));
+        pedido.setTotalParcial(BigDecimal.ZERO);
+        pedido.setSaldoPendiente(BigDecimal.ZERO);
+
+        pedido = pedidoRepository.save(pedido);
+
+        // Crear notificación para los admins
+        notificacionService.crearNotificacionPedidoNuevo(pedido);
+
+        return toResponse(pedido, "Venta por ingreso directo: $" + request.getMontoIngreso() + " (" + request.getMetodoPago() + ")");
+    }
+
     public List<PedidoResponse> listarTodos() {
         return pedidoRepository.findAll().stream()
                 .map(p -> toResponse(p, null))
@@ -112,6 +164,12 @@ public class PedidoService {
                 .collect(Collectors.toList());
     }
 
+    public List<PedidoResponse> listarPedidosConPagosParciales() {
+        return pedidoRepository.findPedidosConPagosParciales()
+                .stream().map(p -> toResponse(p, null))
+                .collect(Collectors.toList());
+    }
+
     public List<PedidoResponse> listarPorCliente(String emailCliente) {
         Usuario cliente = usuarioRepository.findByEmail(emailCliente)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
@@ -124,6 +182,12 @@ public class PedidoService {
     public PedidoResponse actualizarEstado(Long id, EstadoPedido nuevoEstado) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado: " + id));
+        
+        // Eliminada restricción de pago para entrega
+        // if (nuevoEstado == EstadoPedido.ENTREGADO && pedido.getEstadoPago() != EstadoPago.LIQUIDADO) {
+        //     throw new RuntimeException("El pedido debe estar pagado para poder ser entregado");
+        // }
+        
         pedido.setEstado(nuevoEstado);
         
         // Si el pedido se marca como ENTREGADO, actualizar fecha de entrega
@@ -131,10 +195,12 @@ public class PedidoService {
             pedido.setFechaEntrega(LocalDateTime.now());
         }
         
+        pedido = pedidoRepository.save(pedido); // Guardar cambios explícitamente
+        
         // Notificar al cliente del cambio de estado
         notificacionService.crearNotificacionCambioEstado(pedido);
         
-        return toResponse(pedidoRepository.save(pedido), null);
+        return toResponse(pedido, null);
     }
 
     public PedidoResponse obtenerPorId(Long id) {

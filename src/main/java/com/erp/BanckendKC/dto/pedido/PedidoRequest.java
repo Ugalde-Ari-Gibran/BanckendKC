@@ -14,7 +14,6 @@ public class PedidoRequest {
     @NotNull(message = "La modalidad de entrega es obligatoria")
     private ModalidadEntrega modalidad;
 
-    @NotEmpty(message = "El pedido debe tener al menos un producto")
     private List<DetallePedidoRequest> detalles;
 
     private String direccionEntrega;
@@ -27,4 +26,8 @@ public class PedidoRequest {
     private String clienteNombreManual; // solo en LOCAL_MANUAL
 
     private String clienteTelefonoManual; // solo en LOCAL_MANUAL
+
+    private Double montoIngreso; // solo en LOCAL_MANUAL para ventas por ingreso directo
+
+    private String metodoPago; // EFECTIVO o TARJETA, solo en LOCAL_MANUAL
 }

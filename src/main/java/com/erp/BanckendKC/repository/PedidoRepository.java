@@ -33,4 +33,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     @Query("SELECT SUM(p.saldoPendiente) FROM Pedido p WHERE p.estadoPago = 'PENDIENTE'")
     BigDecimal sumSaldosPendientes();
+
+    // Pedidos con pagos parciales (monto pagado > 0 y saldo pendiente > 0)
+    @Query("SELECT p FROM Pedido p WHERE p.montoPagado > 0 AND p.saldoPendiente > 0 ORDER BY p.fechaHora DESC")
+    List<Pedido> findPedidosConPagosParciales();
 }
