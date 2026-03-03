@@ -4,29 +4,15 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:${PGUSER}}
     password: ${SPRING_DATASOURCE_PASSWORD:${PGPASSWORD}}
   jpa:
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-server:
-  port: ${PORT:8080}spring:
-  datasource:
-    url: ${DATABASE_URL}
-  jpa:
-    show-sql: false
     hibernate:
       ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 server:
   port: ${PORT:8080}
-
-jwt:
-  secret: ${JWT_SECRET}
-  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
 
 jwt:
   secret: ${JWT_SECRET}
