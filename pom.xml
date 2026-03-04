@@ -124,15 +124,15 @@
 
 	<profiles>
 		<profile>
-			<id>dev</id>
+			<id>development</id>
 			<properties>
-				<spring-boot.run.profiles>dev</spring-boot.run.profiles>
+				<spring-boot.run.profiles>development</spring-boot.run.profiles>
 			</properties>
 		</profile>
 		<profile>
-			<id>prod</id>
+			<id>production</id>
 			<properties>
-				<spring-boot.run.profiles>prod</spring-boot.run.profiles>
+				<spring-boot.run.profiles>production</spring-boot.run.profiles>
 			</properties>
 		</profile>
 	</profiles>

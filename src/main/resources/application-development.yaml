@@ -1,4 +1,5 @@
 spring:
+  profiles: development
   datasource:
     url: jdbc:postgresql://localhost:5433/KamyCarnesDev
     username: augalde

@@ -1,4 +1,5 @@
 spring:
+  profiles: production
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USER}
