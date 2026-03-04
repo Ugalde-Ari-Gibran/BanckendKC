@@ -16,5 +16,5 @@ server:
   port: 8080
 
 jwt:
-  secret: ${JWT_SECRET:fallbacksecret123}
+  secret: ${JWT_SECRET:fallbacksecret123fallbacksecret123x}
   expiration-ms: 86400000
