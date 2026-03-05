@@ -193,7 +193,7 @@ public class PedidoService {
         // Si el pedido se marca como ENTREGADO, actualizar fecha de entrega
         if (nuevoEstado == EstadoPedido.ENTREGADO) {
             pedido.setFechaEntrega(LocalDateTime.now());
-            // Si al entregar no está liquidado, el estado de pago pasa a CREDITO y se marca como crédito
+            // Si al entregar no está liquidado, el estado de pago pasa a CREDITO y se marca como crédito hola
             if (pedido.getEstadoPago() != EstadoPago.LIQUIDADO) {
                 pedido.setEstadoPago(EstadoPago.CREDITO);
                 pedido.setEsCredito(true);
