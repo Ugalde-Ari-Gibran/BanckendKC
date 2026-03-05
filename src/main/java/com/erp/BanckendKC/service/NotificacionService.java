@@ -51,7 +51,7 @@ public class NotificacionService {
 
         String clienteNombre = pedido.getCliente() != null ? pedido.getCliente().getNombre() : pedido.getClienteNombreManual();
         String titulo = "✅ Pedido Entregado #" + pedido.getId();
-        String mensaje = String.format("El pedido #%d de %s ha sido entregado y liquidado",
+        String mensaje = String.format("El pedido #%d de %s ha sido entregado",
                 pedido.getId(), clienteNombre);
 
         for (String adminEmail : adminsEmails) {
@@ -63,6 +63,46 @@ public class NotificacionService {
                     .adminDestinatario(adminEmail)
                     .build();
             notificacionRepository.save(notificacion);
+        }
+    }
+
+    public void crearNotificacionPagoRegistrado(com.erp.BanckendKC.entity.Pago pago) {
+        Pedido pedido = pago.getPedido();
+        String clienteNombre = pedido.getCliente() != null ? pedido.getCliente().getNombre() : pedido.getClienteNombreManual();
+        
+        // Notificación para Admins
+        List<String> adminsEmails = usuarioRepository.findByRol(com.erp.BanckendKC.enums.RolUsuario.ADMIN)
+                .stream().map(u -> u.getEmail()).collect(Collectors.toList());
+
+        String tituloAdmin = "💰 Pago Recibido #" + pedido.getId();
+        String mensajeAdmin = String.format("Se recibió un pago de $%.2f por %s para el pedido #%d. Saldo restante: $%.2f",
+                pago.getMontoPagado(), clienteNombre, pedido.getId(), pedido.getSaldoPendiente());
+
+        for (String adminEmail : adminsEmails) {
+            Notificacion notificacion = Notificacion.builder()
+                    .titulo(tituloAdmin)
+                    .mensaje(mensajeAdmin)
+                    .tipo("PAGO_REGISTRADO")
+                    .pedidoId(pedido.getId())
+                    .adminDestinatario(adminEmail)
+                    .build();
+            notificacionRepository.save(notificacion);
+        }
+
+        // Notificación para Cliente
+        if (pedido.getCliente() != null) {
+            String tituloCliente = "💸 Pago Registrado #" + pedido.getId();
+            String mensajeCliente = String.format("Hemos registrado tu pago de $%.2f. Tu saldo pendiente es $%.2f",
+                    pago.getMontoPagado(), pedido.getSaldoPendiente());
+
+            Notificacion notificacionCliente = Notificacion.builder()
+                    .titulo(tituloCliente)
+                    .mensaje(mensajeCliente)
+                    .tipo("PAGO_REGISTRADO")
+                    .pedidoId(pedido.getId())
+                    .clienteDestinatario(pedido.getCliente().getEmail())
+                    .build();
+            notificacionRepository.save(notificacionCliente);
         }
     }
 

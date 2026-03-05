@@ -193,9 +193,14 @@ public class PedidoService {
         // Si el pedido se marca como ENTREGADO, actualizar fecha de entrega
         if (nuevoEstado == EstadoPedido.ENTREGADO) {
             pedido.setFechaEntrega(LocalDateTime.now());
+            // Si al entregar no está liquidado, el estado de pago pasa a CREDITO y se marca como crédito
+            if (pedido.getEstadoPago() != EstadoPago.LIQUIDADO) {
+                pedido.setEstadoPago(EstadoPago.CREDITO);
+                pedido.setEsCredito(true);
+            }
         }
         
-        pedido = pedidoRepository.save(pedido); // Guardar cambios explícitamente
+        pedido = pedidoRepository.save(pedido);
         
         // Notificar al cliente del cambio de estado
         notificacionService.crearNotificacionCambioEstado(pedido);
@@ -283,6 +288,7 @@ public class PedidoService {
                 .fechaHora(p.getFechaHora())
                 .fechaEntrega(p.getFechaEntrega())
                 .mensajeWhatsApp(mensajeWhatsApp)
+                .esCredito(p.getEsCredito())
                 .build();
     }
 }

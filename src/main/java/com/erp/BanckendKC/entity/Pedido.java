@@ -65,11 +65,15 @@ public class Pedido {
 
     private LocalDateTime fechaEntrega;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean esCredito = false;
+
     @PrePersist
     public void prePersist() {
         this.fechaHora = LocalDateTime.now();
         if (this.estado == null) this.estado = EstadoPedido.PENDIENTE;
         if (this.estadoPago == null) this.estadoPago = EstadoPago.PENDIENTE;
         if (this.montoPagado == null) this.montoPagado = BigDecimal.ZERO;
+        if (this.esCredito == null) this.esCredito = false;
     }
 }

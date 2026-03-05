@@ -49,6 +49,14 @@ public class PagoService {
             
             // Crear notificación de pedido entregado
             notificacionService.crearNotificacionPedidoEntregado(pedido);
+        } else {
+            // Si el pago es parcial y el pedido ya está entregado, sigue siendo CREDITO
+            // Si el pedido no está entregado y se abona algo, sigue siendo PENDIENTE hasta que se entregue
+            // Pero si el usuario lo marca como entregado, el PedidoService lo pasa a CREDITO.
+            
+            // Aquí solo manejamos el cambio a LIQUIDADO.
+            // Si estaba en CREDITO y no se liquida, sigue en CREDITO.
+            // Si estaba en PENDIENTE y no se liquida, sigue en PENDIENTE.
         }
 
         pedidoRepository.save(pedido);
@@ -62,7 +70,13 @@ public class PagoService {
                 .registradoPor(adminNombre)
                 .build();
 
-        return pagoRepository.save(pago);
+        Pago pagoGuardado = pagoRepository.save(pago);
+        
+        // Notificar pago registrado (esto cubrirá tanto parcial como total)
+        // La notificación de pedido entregado se mantiene si el saldo es cero, pero el mensaje es diferente
+        notificacionService.crearNotificacionPagoRegistrado(pagoGuardado);
+        
+        return pagoGuardado;
     }
 
     public List<Pago> obtenerPagos(Long pedidoId) {

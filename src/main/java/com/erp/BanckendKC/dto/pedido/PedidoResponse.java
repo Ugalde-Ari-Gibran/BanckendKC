@@ -29,4 +29,5 @@ public class PedidoResponse {
     private LocalDateTime fechaHora;
     private LocalDateTime fechaEntrega;
     private String mensajeWhatsApp; // mensaje generado para WhatsApp
+    private Boolean esCredito;
 }
