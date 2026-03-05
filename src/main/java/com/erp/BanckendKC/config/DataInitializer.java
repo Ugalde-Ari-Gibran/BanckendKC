@@ -10,6 +10,7 @@ import com.erp.BanckendKC.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -24,12 +25,32 @@ public class DataInitializer implements CommandLineRunner {
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) {
+        actualizarConstraintEstadoPago();
         inicializarAdmin();
         inicializarCategorias();
         inicializarProductos();
+    }
+
+    private void actualizarConstraintEstadoPago() {
+        try {
+            log.info("🔄 Actualizando constraint pedidos_estado_pago_check...");
+            // Intentar eliminar la constraint antigua si existe
+            try {
+                jdbcTemplate.execute("ALTER TABLE pedidos DROP CONSTRAINT IF EXISTS pedidos_estado_pago_check");
+            } catch (Exception e) {
+                log.warn("No se pudo eliminar constraint (puede que no exista): " + e.getMessage());
+            }
+            
+            // Crear la nueva constraint con CREDITO incluido
+            jdbcTemplate.execute("ALTER TABLE pedidos ADD CONSTRAINT pedidos_estado_pago_check CHECK (estado_pago IN ('PENDIENTE', 'LIQUIDADO', 'CREDITO'))");
+            log.info("✅ Constraint pedidos_estado_pago_check actualizada correctamente");
+        } catch (Exception e) {
+            log.error("⚠️ Error actualizando constraint: " + e.getMessage());
+        }
     }
 
     private void inicializarAdmin() {

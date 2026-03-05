@@ -42,7 +42,7 @@ public class Pedido {
     private OrigenVenta origenVenta;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "estado_pago", nullable = false)
     private EstadoPago estadoPago;
 
     @Column(precision = 10, scale = 2)
